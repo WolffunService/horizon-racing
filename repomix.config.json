@@ -1,0 +1,16 @@
+{
+  "output": {
+    "file": "repomix-output.md",
+    "style": "markdown",
+    "removeComments": true
+  },
+  "include": [
+    "**/*"
+  ],
+  "exclude": [
+    "**/.backups/**",
+    "**/.vscode/**",
+    "**/node_modules/**",
+    "**/*.md"
+  ]
+} 
