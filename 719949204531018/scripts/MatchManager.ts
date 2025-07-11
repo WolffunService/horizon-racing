@@ -4,6 +4,7 @@
 import * as hz from 'horizon/core';
 import { GameState, PlayerGameStatus } from 'GameUtils';
 import { Events } from "Events";
+import { NPCManager } from './NPCManager';
 
 export interface PlayerData {
   player: hz.Player;
@@ -16,9 +17,12 @@ export class MatchManager extends hz.Component<typeof MatchManager> {
     // Thêm 2 spawn point cho đấu trường
     archerSpawnPoint1: { type: hz.PropTypes.Entity },
     archerSpawnPoint2: { type: hz.PropTypes.Entity },
+    // Bot timeout settings
+    waitingForPlayerTimeout: { type: hz.PropTypes.Number, default: 10000 }, // 10 giây
   };
   private lastKnownGameState = GameState.ReadyForMatch;
   private playerMap: Map<number, PlayerData> = new Map<number, PlayerData>();
+  private waitingForPlayerTimer: number | null = null;
   private static s_instance: MatchManager
   public static getInstance(): MatchManager {
     return MatchManager.s_instance;
@@ -43,8 +47,7 @@ export class MatchManager extends hz.Component<typeof MatchManager> {
 
     // Thay thế logic trigger cũ bằng một trigger ở sảnh chờ
     this.connectLocalBroadcastEvent(Events.onRegisterPlayerForMatch, (data) => {
-      this.setPlayerStatus(data.player, PlayerGameStatus.Standby);
-      this.sendLocalBroadcastEvent(Events.onPlayerJoinedStandby, { player: data.player });
+      this.handlePlayerRegisterStandby(data.player);
     });
 
     this.connectLocalBroadcastEvent(Events.onGameStateChanged, (data) => {
@@ -99,8 +102,45 @@ export class MatchManager extends hz.Component<typeof MatchManager> {
     const data = this.playerMap.get(player.id);
     if (data && data.playerGameStatus === PlayerGameStatus.Standby) {
       this.sendLocalBroadcastEvent(Events.onPlayerLeftStandby, { player });
+      // Hủy bộ đếm giờ nếu người chơi thoát ra
+      this.handlePlayerDeregisterStandby(player);
     }
     this.playerMap.delete(player.id);
+  }
+
+  private handlePlayerRegisterStandby(player: hz.Player): void {
+    // Chỉ xử lý nếu người chơi là người thật
+    if (player.id === NPCManager.getInstance()?.getBotPlayer()?.id) return;
+
+    this.setPlayerStatus(player, PlayerGameStatus.Standby);
+    this.sendLocalBroadcastEvent(Events.onPlayerJoinedStandby, { player });
+
+    const standbyPlayers = this.getPlayersWithStatus(PlayerGameStatus.Standby).filter(p => p.id !== NPCManager.getInstance()?.getBotPlayer()?.id);
+
+    // Nếu chỉ có 1 người chơi thật trong hàng chờ, bắt đầu đếm giờ
+    if (standbyPlayers.length === 1 && !this.waitingForPlayerTimer) {
+      console.log(`Player ${player.name.get()} is waiting. Starting bot timer.`);
+      this.waitingForPlayerTimer = this.async.setTimeout(() => {
+        const stillWaitingPlayers = this.getPlayersWithStatus(PlayerGameStatus.Standby).filter(p => p.id !== NPCManager.getInstance()?.getBotPlayer()?.id);
+        // Nếu sau 10 giây vẫn chỉ có 1 người, yêu cầu spawn bot
+        if (stillWaitingPlayers.length === 1) {
+          console.log("Timer expired. Requesting bot match.");
+          this.sendLocalBroadcastEvent(Events.onRequestBotMatch, { player: stillWaitingPlayers[0] });
+        }
+        this.waitingForPlayerTimer = null;
+      }, this.props.waitingForPlayerTimeout);
+    }
+  }
+
+  private handlePlayerDeregisterStandby(player: hz.Player): void {
+    this.setPlayerStatus(player, PlayerGameStatus.Lobby);
+
+    // Nếu người chơi rời hàng chờ, hủy bộ đếm giờ
+    if (this.waitingForPlayerTimer) {
+      this.async.clearInterval(this.waitingForPlayerTimer);
+      this.waitingForPlayerTimer = null;
+      console.log("Player left standby, bot timer cancelled.");
+    }
   }
 
 }

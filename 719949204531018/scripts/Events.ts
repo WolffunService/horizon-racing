@@ -44,6 +44,9 @@ export const Events = {
   onPlayerJoinedStandby: new hz.LocalEvent<{ player: hz.Player }>("onPlayerJoinedStandby"),
   onPlayerLeftStandby: new hz.LocalEvent<{ player: hz.Player }>("onPlayerLeftStandby"),
 
+  // Bot Events (Mới)
+  onRequestBotMatch: new hz.LocalEvent<{ player: hz.Player }>("onRequestBotMatch"), // Khi người chơi yêu cầu chơi với bot
+
   // Gameplay Events (Mới)
   fireArrowRequest: new hz.NetworkEvent<FireArrowPayload>("fireArrowRequest"), // Client -> Server
   onArrowHitPlayer: new hz.LocalEvent<ArrowHitPlayerPayload>("onArrowHitPlayer"), // Server-side
