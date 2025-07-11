@@ -1,5 +1,5 @@
 /**
- * Game-wide enums and constants. Advanced curve functions and their visualizer
+ * Game-wide enums and constants for PvP Archer game
  */
 
 import * as hz from "horizon/core";
@@ -17,6 +17,33 @@ export enum PlayerGameStatus {
   "Standby",
   "Playing",
 }
+
+// Archer Game Constants
+export const ARCHER_CONSTANTS = {
+  // Health and Damage
+  MAX_HEALTH: 100,
+  BASE_DAMAGE: 10,
+  HEADSHOT_MULTIPLIER: 2.5,
+  BODY_MULTIPLIER: 1.0,
+  LIMB_MULTIPLIER: 0.8,
+
+  // Physics
+  KNOCKBACK_FORCE: 5,
+  ARROW_GRAVITY: 9.8,
+
+  // Turn Management
+  TURN_DURATION_SECONDS: 15,
+  MATCH_START_COUNTDOWN: 5,
+  WINNER_ANNOUNCEMENT_TIME: 5,
+
+  // Bow Mechanics
+  MAX_DRAW_TIME: 2.0,
+  MIN_ARROW_VELOCITY: 10,
+  MAX_ARROW_VELOCITY: 50,
+
+  // Match Settings
+  PLAYERS_PER_MATCH: 2,
+};
 
 // Pool Class
 export class Pool<T> {

@@ -1,44 +1,58 @@
 /**
- * Contains the event container for the entire world
+ * All events used in the PvP Archer world
  */
-import { GameState, PlayerGameStatus } from "GameUtils";
 import * as hz from "horizon/core";
+import { GameState } from "GameUtils";
+
+// Định nghĩa kiểu dữ liệu cho các sự kiện để đảm bảo tính nhất quán
+export type FireArrowPayload = {
+  startPosition: hz.Vec3;
+  startRotation: hz.Quaternion;
+  initialVelocity: hz.Vec3;
+};
+
+export type ArrowHitPlayerPayload = {
+  attacker: hz.Player;
+  victim: hz.Player;
+  arrow: hz.Entity;
+  hitColliderName: string;
+};
+
+export type ArrowHitEnvironmentPayload = {
+    arrow: hz.Entity;
+};
+
+export type HealthChangedPayload = {
+  player: hz.Player;
+  currentHealth: number;
+  maxHealth: number;
+};
+
+export type TurnChangedPayload = {
+  currentPlayer: hz.Player;
+  turnTimeLimit: number; // Thời gian cho lượt chơi (giây)
+};
 
 export const Events = {
-    onGameStateChanged: new hz.LocalEvent<{ fromState: GameState; toState: GameState; }>("onGameStateChanged"),
+  // Game State Events (Giữ nguyên từ project cũ)
+  onGameStateChanged: new hz.LocalEvent<{ fromState: GameState; toState: GameState; }>("onGameStateChanged"),
+  onResetWorld: new hz.NetworkEvent("onResetWorld"),
+  onResetLocalObjects: new hz.NetworkEvent("onResetLocalObjects"),
 
-    onRegisterPlayerForMatch: new hz.LocalEvent<{ player: hz.Player }>("onRegisterPlayerForMatch"),
-    onDeregisterPlayerForMatch: new hz.LocalEvent<{ player: hz.Player }>("onDeregisterPlayerForMatch"),
+  // Player & Match Events (Giữ nguyên)
+  onRegisterPlayerForMatch: new hz.LocalEvent<{ player: hz.Player }>("onRegisterPlayerForMatch"),
+  onPlayerJoinedStandby: new hz.LocalEvent<{ player: hz.Player }>("onPlayerJoinedStandby"),
+  onPlayerLeftStandby: new hz.LocalEvent<{ player: hz.Player }>("onPlayerLeftStandby"),
 
-    onPlayerJoinedStandby: new hz.LocalEvent<{ player: hz.Player }>("onPlayerJoinedStandby"),
-    onPlayerLeftMatch: new hz.LocalEvent<{ player: hz.Player }>("onPlayerLeftMatch"),
-    onPlayerLeftStandby: new hz.LocalEvent<{ player: hz.Player }>("onPlayerLeftStandby"),
-    onPlayerReachedGoal: new hz.LocalEvent<{ player: hz.Player }>("onPlayerReachedGoal"),
+  // Gameplay Events (Mới)
+  fireArrowRequest: new hz.NetworkEvent<FireArrowPayload>("fireArrowRequest"), // Client -> Server
+  onArrowHitPlayer: new hz.LocalEvent<ArrowHitPlayerPayload>("onArrowHitPlayer"), // Server-side
+  onArrowHitEnvironment: new hz.LocalEvent<ArrowHitEnvironmentPayload>("onArrowHitEnvironment"), // Server-side
+  onPlayerDefeated: new hz.LocalEvent<{ winner: hz.Player; loser: hz.Player; }>("onPlayerDefeated"), // Server-side
 
-    onResetLocalObjects: new hz.NetworkEvent("onResetLocalObjects"),
+  // Turn Management Events (Mới)
+  onTurnChanged: new hz.NetworkEvent<TurnChangedPayload>("onTurnChanged"), // Server -> Client
 
-    onResetWorld: new hz.NetworkEvent("onResetWorld"),
-
-    onGameEndTimeLeft: new hz.LocalEvent<{ timeLeftMS: number }>("onGameEndTimeLeft"),
-    onGameStartTimeLeft: new hz.LocalEvent<{ timeLeftMS: number }>("onGameStartTimeLeft"),
-
-    onRegisterPlyrCtrl: new hz.LocalEvent<{ caller: hz.Entity }>("onRegisterPlyrCtrl"),
-    onGetPlyrCtrlData: new hz.NetworkEvent<{ caller: hz.Player }>("onGetPlyrCtrlData"),
-    onSetPlyrCtrlData: new hz.NetworkEvent<{ doubleJumpAmount: number; boostJumpAmount: number; boostJumpAngle: number; }>("onSetPlyrCtrlData"),
-
-    onPlayerGotBoost: new hz.NetworkEvent("onPlayerGotBoost"),  //The server needs to tell the local player controller that they have a boost
-    onPlayerUsedBoost: new hz.LocalEvent("onPlayerUsedBoost"),  //this can be a local event given that we are only running it from the local player
-    onPlayerUsedDoubleJump: new hz.LocalEvent("onPlayerUsedDoubleJump"),  //this can be a local event given that we are only running it from the local player
-
-    onRegisterOOBRespawner: new hz.LocalEvent<{ caller: hz.Entity }>("onRegisterOOBRespawner"),
-    onGetOOBRespawnerData: new hz.NetworkEvent<{ caller: hz.Entity }>("onGetOOBRespawnerData"),
-    onSetOOBRespawnerData: new hz.NetworkEvent<{ intervalMS: number, OOBWorldYHeight: number }>("onSetOOBRespawnerData"),
-
-    onPlayerOutOfBounds: new hz.NetworkEvent("onPlayerOutOfBounds"),
-    onRegisterRaceHUD: new hz.LocalEvent<{ caller: hz.Entity }>("onRegisterRaceHUD"),
-
-    onRacePosUpdate: new hz.NetworkEvent<{ playerPos: number, totalRacers: number, matchTime: number }>('onRacePosUpdate'),
-    onStopRacePosUpdates: new hz.NetworkEvent('onStopRacePosUpdates'),
-
-    //onPlayerListInStatusChanged : new hz.LocalEvent<{ pgs: PlayerGameStatus , player: hz.Player[]}>('onPlayerListInStatusChanged'),
+  // Health & HUD Events (Mới)
+  onHealthChanged: new hz.NetworkEvent<HealthChangedPayload>("onHealthChanged"), // Server -> Client
 };

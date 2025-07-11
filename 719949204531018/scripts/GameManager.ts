@@ -1,5 +1,5 @@
 /**
- * Controls the overall game state of the world, listening to events occurring and transiting the game state accordingly
+ * Controls the overall game state of the PvP Archer world, managing match flow and transitions
  */
 import * as hz from 'horizon/core';
 import { Events } from "Events";
@@ -9,28 +9,22 @@ import { MatchManager } from 'MatchManager';
 export class GameManager extends hz.Component<typeof GameManager> {
 
   static propsDefinition = {
-    startLineGameStateUI: { type: hz.PropTypes.Entity },
-    finishLineGameStateUI: { type: hz.PropTypes.Entity },
-
-    timeToMatchStartMS: { type: hz.PropTypes.Number, default: 3000 },
-    timeToMatchEndMS: { type: hz.PropTypes.Number, default: 3000 },
-    timeNewMatchReadyMS: { type: hz.PropTypes.Number, default: 3000 },
-
-    minTimeToShowStartPopupsMS: { type: hz.PropTypes.Number, default: 3000 },
-    minTimeToShowEndPopupsMS: { type: hz.PropTypes.Number, default: 10000 },
-
-    playersNeededForMatch: { type: hz.PropTypes.Number, default: 1 },
+    // UI để hiển thị trạng thái game, có thể đặt ở sảnh chờ
+    gameStateUI: { type: hz.PropTypes.Entity },
+    // Thời gian đếm ngược
+    timeToMatchStartMS: { type: hz.PropTypes.Number, default: 5000 },
+    timeToAnnounceWinnerMS: { type: hz.PropTypes.Number, default: 5000 },
+    timeToResetMS: { type: hz.PropTypes.Number, default: 5000 },
   };
 
   private currentGameState = GameState.ReadyForMatch;
-  private startMatchTimerID = 0;
-  private endMatchTimerID = 0;
-  private newMatchTimerID = 0;
-
-  private startLineGameStateUI: hz.TextGizmo | null = null;
-  private finishLineGameStateUI: hz.TextGizmo | null = null;
+  private gameStateUI: hz.TextGizmo | null = null;
 
   static s_instance: GameManager
+
+  public static getInstance(): GameManager {
+    return GameManager.s_instance;
+  }
 
   constructor() {
     super();
@@ -44,158 +38,85 @@ export class GameManager extends hz.Component<typeof GameManager> {
   }
 
   preStart() {
-    this.currentGameState = GameState.ReadyForMatch;
-    this.startLineGameStateUI = this.props.startLineGameStateUI!.as(hz.TextGizmo)!;
-    this.finishLineGameStateUI = this.props.finishLineGameStateUI!.as(hz.TextGizmo)!;
+    this.gameStateUI = this.props.gameStateUI?.as(hz.TextGizmo) ?? null;
+    this.updateGameStateUI("Waiting for players...");
 
-    this.connectLocalBroadcastEvent(Events.onPlayerJoinedStandby,
-      () => {
-        const totalPlayerStandby = MatchManager.getInstance().getPlayersWithStatus(PlayerGameStatus.Standby).length;
-        if (totalPlayerStandby >= this.props.playersNeededForMatch) {
-          this.transitFromReadyToStarting();
-        }
-      });
-
-
-    //If players leave the match and are in standby, if there are too little players to start the match, we need to transit to ready
-    this.connectLocalBroadcastEvent(Events.onPlayerLeftStandby,
-      () => {
-        const totalPlayerInStandby = MatchManager.getInstance().getPlayersWithStatus(PlayerGameStatus.Standby).length;
-        if (totalPlayerInStandby < this.props.playersNeededForMatch) {
-
-          if (this.currentGameState === GameState.StartingMatch) {
-            this.transitFromStartingToReady();
-          }
-          else {
-            console.error("invalid state to transition from");
-          }
-        }
-      });
-
-    //handle the case where there the last player leaves the world
-    this.connectCodeBlockEvent(this.entity, hz.CodeBlockEvents.OnPlayerExitWorld, (player: hz.Player) => {
-
-      if (this.world.getPlayers().length === 0) {
-        this.sendNetworkBroadcastEvent(Events.onResetWorld, {});
-        console.warn("All players left, resetting world");
+    // Bắt đầu trận đấu khi có đủ 2 người chơi sẵn sàng
+    this.connectLocalBroadcastEvent(Events.onPlayerJoinedStandby, (data) => {
+      const standbyPlayers = MatchManager.getInstance().getPlayersWithStatus(PlayerGameStatus.Standby);
+      if (standbyPlayers.length === 2 && this.currentGameState === GameState.ReadyForMatch) {
+        this.transitFromReadyToStarting();
       }
-
-      this.reset();
     });
 
-    this.connectLocalBroadcastEvent(Events.onPlayerReachedGoal,
-      () => {
-        this.transitFromPlayingToEnding();
-      });
+    // Hủy trận đấu nếu một người thoát ra khi đang chờ
+    this.connectLocalBroadcastEvent(Events.onPlayerLeftStandby, (data) => {
+      if (this.currentGameState === GameState.StartingMatch) {
+        this.transitToReady("A player left. Match cancelled.");
+      }
+    });
+
+    // Lắng nghe sự kiện người chơi bị đánh bại
+    this.connectLocalBroadcastEvent(Events.onPlayerDefeated, (data) => {
+      if (this.currentGameState === GameState.PlayingMatch) {
+        this.transitFromPlayingToCompleted(data.winner);
+      }
+    });
+
+    this.connectNetworkBroadcastEvent(Events.onResetWorld, () => this.reset());
   }
 
-  start() { }
+  private transitGameState(toState: GameState) {
+    const fromState = this.currentGameState;
+    if (fromState === toState) return;
 
-  private transitGameState(fromState: GameState, toState: GameState) {
-
-    if (fromState === toState) {
-      console.warn(`Trying to transit to the same state ${GameState[fromState]}, skipping`)
-      return false;
-    }
-    else if (fromState !== this.currentGameState) {
-      console.warn(`Trying to transit from ${GameState[fromState]} when Current state is ${GameState[this.currentGameState]} `)
-      return false;
-    }
-    else {
-      console.log(`transiting from ${GameState[fromState]} to ${GameState[toState]}`)
-      this.currentGameState = toState;
-      this.sendLocalBroadcastEvent(Events.onGameStateChanged, { fromState, toState });
-      return true;
-    }
+    console.log(`Game State Changed: ${GameState[fromState]} -> ${GameState[toState]}`);
+    this.currentGameState = toState;
+    this.sendLocalBroadcastEvent(Events.onGameStateChanged, { fromState, toState });
   }
 
-  private transitFromStartingToReady(): void {
-    const transited = this.transitGameState(GameState.StartingMatch, GameState.ReadyForMatch);
-    if (!transited) return;
-
-    this.reset();
-  }
-
-  private transitFromCompletedToReady(): void {
-    const transited = this.transitGameState(GameState.CompletedMatch, GameState.ReadyForMatch);
-    if (!transited) return;
-
-    this.reset();
-  }
-
-  private transitFromReadyToStarting(): void {
-    const transited = this.transitGameState(GameState.ReadyForMatch, GameState.StartingMatch);
-    if (!transited) return;
-
-    this.startMatchTimerID = timedIntervalActionFunction(this.props.timeToMatchStartMS, this,
-      (timerMS) => {
-        const infoStr = `Match Starting in ${timerMS / 1000}!`;
-        this.updateGameStateUI(infoStr);
-        this.sendLocalBroadcastEvent(Events.onGameStartTimeLeft, { timeLeftMS: timerMS });
-        if (timerMS < this.props.minTimeToShowStartPopupsMS) {
-          this.world.ui.showPopupForEveryone(infoStr, 1);
-        }
+  private transitFromReadyToStarting() {
+    this.transitGameState(GameState.StartingMatch);
+    timedIntervalActionFunction(this.props.timeToMatchStartMS, this,
+      (timeLeft) => {
+        const text = `Match starts in ${timeLeft / 1000}...`;
+        this.updateGameStateUI(text);
+        this.world.ui.showPopupForEveryone(text, 1);
       },
-      this.transitFromStartingToPlaying.bind(this)
+      () => { this.transitGameState(GameState.PlayingMatch); }
     );
   }
 
-  private transitFromStartingToPlaying(): void {
-    const transited = this.transitGameState(GameState.StartingMatch, GameState.PlayingMatch);
-    if (!transited) return;
+  private transitFromPlayingToCompleted(winner: hz.Player) {
+    this.transitGameState(GameState.CompletedMatch);
+    const text = `${winner.name.get()} is victorious!`;
+    this.updateGameStateUI(text);
+    this.world.ui.showPopupForEveryone(text, this.props.timeToAnnounceWinnerMS / 1000);
 
-    this.updateGameStateUI(`Game On!`);
+    this.async.setTimeout(() => this.transitToReady("New match starting soon..."), this.props.timeToAnnounceWinnerMS);
   }
 
-  private transitFromPlayingToEnding(): void {
-    const transited = this.transitGameState(GameState.PlayingMatch, GameState.EndingMatch);
+  private transitToReady(message: string) {
+    this.transitGameState(GameState.ReadyForMatch);
+    this.updateGameStateUI(message);
 
-    if (!transited) return;
-
-    this.endMatchTimerID = timedIntervalActionFunction(this.props.timeToMatchEndMS, this,
-      (timerMS) => {
-        const infoStr = `Match Ending in ${timerMS / 1000}!`;
-        this.updateGameStateUI(infoStr);
-        if (timerMS < this.props.minTimeToShowEndPopupsMS) {
-          this.world.ui.showPopupForEveryone(infoStr, 1);
-        }
-
-        this.sendLocalBroadcastEvent(Events.onGameEndTimeLeft, { timeLeftMS: timerMS });
-      },
-      this.transitFromEndingToCompleted.bind(this)
-    );
+    // Reset toàn bộ logic game
+    this.world.getPlayers().forEach(player => {
+      this.sendNetworkEvent(player, Events.onResetLocalObjects, {});
+    });
+    MatchManager.getInstance().resetPlayersToLobby();
   }
 
-  private transitFromEndingToCompleted(): void {
-    const transited = this.transitGameState(GameState.EndingMatch, GameState.CompletedMatch);
-    if (!transited) return;
-
-    //now transit from Completed to Ready
-    this.newMatchTimerID = timedIntervalActionFunction(this.props.timeNewMatchReadyMS, this,
-      (timerMS) => {
-        const infoStr = `New Match Available in  ${timerMS / 1000}!`;
-        this.updateGameStateUI(infoStr);
-        this.world.ui.showPopupForEveryone(infoStr, this.props.timeNewMatchReadyMS / 1000);
-
-      },
-      this.transitFromCompletedToReady.bind(this)
-    );
-  }
-
-  private updateGameStateUI(text: string): void {
-    this.startLineGameStateUI?.text.set(text);
-    this.finishLineGameStateUI?.text.set(text);
+  private updateGameStateUI(text: string) {
+    this.gameStateUI?.text.set(text);
   }
 
   private reset() {
     this.currentGameState = GameState.ReadyForMatch;
-    this.updateGameStateUI('Ready');
-    this.async.clearInterval(this.startMatchTimerID);
-    this.async.clearInterval(this.endMatchTimerID);
-    this.async.clearInterval(this.newMatchTimerID);
+    this.updateGameStateUI("Waiting for players...");
   }
+}
 
-  dispose() { this.reset(); }
 }
 
 hz.Component.register(GameManager);
