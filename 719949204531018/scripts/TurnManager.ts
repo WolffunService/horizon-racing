@@ -44,6 +44,10 @@ export class TurnManager extends hz.Component<typeof TurnManager> {
         this.connectLocalBroadcastEvent(Events.onArrowHitEnvironment, () => this.nextTurn());
     }
 
+    start() {
+        // Required method implementation
+    }
+
     private startMatch() {
         this.combatants = MatchManager.getInstance().getPlayersWithStatus(PlayerGameStatus.Playing);
         if (this.combatants.length < 2) return;

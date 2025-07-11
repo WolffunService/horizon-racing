@@ -39,6 +39,10 @@ export class PlayerControllerLocal_Archer extends hz.Component<typeof PlayerCont
         this.setupInputs();
     }
 
+    start() {
+        // Required method implementation
+    }
+
     private setupInputs() {
         // Kết nối với input bắn cung
         this.triggerInput = hz.PlayerControls.connectLocalInput(

@@ -36,8 +36,12 @@ export class HealthManager extends hz.Component<typeof HealthManager> {
         this.connectCodeBlockEvent(this.entity, hz.CodeBlockEvents.OnPlayerEnterWorld, (p) => {
             this.playerHealth.set(p.id, this.props.maxHealth);
         });
-        
+
         this.connectLocalBroadcastEvent(Events.onArrowHitPlayer, (payload) => this.handleHit(payload));
+    }
+
+    start() {
+        // Required method implementation
     }
     
     private handleHit(payload: ArrowHitPlayerPayload) {

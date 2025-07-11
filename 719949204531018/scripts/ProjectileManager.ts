@@ -31,6 +31,10 @@ export class ProjectileManager extends hz.Component<typeof ProjectileManager> {
             this.spawnArrow(payload, sender);
         });
     }
+
+    start() {
+        // Required method implementation
+    }
     
     private async spawnArrow(payload: FireArrowPayload, attacker: hz.Player) {
         if (!this.props.arrowAsset) return;

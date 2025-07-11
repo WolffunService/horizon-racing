@@ -55,6 +55,10 @@ export class HUDLocal_Archer extends hz.Component<typeof HUDLocal_Archer> {
         });
     }
 
+    start() {
+        // Required method implementation
+    }
+
     private handleHealthChanged(payload: HealthChangedPayload) {
         const isMe = (payload.player.id === this.owner.id);
         
