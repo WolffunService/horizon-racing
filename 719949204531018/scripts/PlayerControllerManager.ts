@@ -46,21 +46,22 @@ export class PlayerControllerManager extends hz.Component<typeof PlayerControlle
       this.handleOnPlayerExitWorld(player);
     });
 
-    this.connectLocalBroadcastEvent(Events.onRegisterPlyrCtrl, (data) => { this.ctrlPool.addToPool(data.caller) })
+    // DEPRECATED: Racing game controller registration - not used in archer game
+    // this.connectLocalBroadcastEvent(Events.onRegisterPlyrCtrl, (data) => { this.ctrlPool.addToPool(data.caller) })
 
-    this.connectNetworkBroadcastEvent(
-      Events.onGetPlyrCtrlData, (data) => {
+    // this.connectNetworkBroadcastEvent(
+    //   Events.onGetPlyrCtrlData, (data) => {
 
-        this.sendNetworkEvent(
-          data.caller,
-          Events.onSetPlyrCtrlData,
-          {
-            doubleJumpAmount: this.props.doubleJumpAmount,
-            boostJumpAmount: this.props.boostJumpAmount,
-            boostJumpAngle: this.props.boostJumpAngle,
-          });
-      }
-    );
+    //     this.sendNetworkEvent(
+    //       data.caller,
+    //       Events.onSetPlyrCtrlData,
+    //       {
+    //         doubleJumpAmount: this.props.doubleJumpAmount,
+    //         boostJumpAmount: this.props.boostJumpAmount,
+    //         boostJumpAngle: this.props.boostJumpAngle,
+    //       });
+    //   }
+    // );
   }
 
   start() { };
