@@ -2,8 +2,14 @@
  * Manages NPC bot spawning, despawning, and lifecycle for PvP Archer matches
  */
 import * as hz from 'horizon/core';
-import { AvatarAIAgent, AgentSpawnResult } from 'horizon/avatar_ai_agent';
+// import { AvatarAIAgent, AgentSpawnResult } from 'horizon/avatar_ai_agent'; // Module not available
 import { Events } from './Events';
+
+// Temporary types until proper AI agent module is available
+type AgentSpawnResult = {
+    success: boolean;
+    player?: hz.Player;
+};
 
 export class NPCManager extends hz.Component<typeof NPCManager> {
     static propsDefinition = {
@@ -67,10 +73,12 @@ export class NPCManager extends hz.Component<typeof NPCManager> {
         console.log("Spawning bot to play with: " + humanPlayer.name.get());
         const result = await this.npcAgentGizmo.spawnAgentPlayer();
 
-        if (result === AgentSpawnResult.Success) {
+        // TODO: Implement proper bot spawning when AI agent module is available
+        if (result && result.success) {
             // Đợi một chút để agent sẵn sàng
             this.async.setTimeout(() => {
-                const botPlayer = AvatarAIAgent.getGizmoFromPlayer(this.props.npcGizmo!)?.agentPlayer.get();
+                // const botPlayer = AvatarAIAgent.getGizmoFromPlayer(this.props.npcGizmo!)?.agentPlayer.get();
+                const botPlayer = result.player; // Temporary - use result player if available
                 if (botPlayer) {
                     this.npcPlayer = botPlayer;
                     this.isBotActive = true;
@@ -89,8 +97,9 @@ export class NPCManager extends hz.Component<typeof NPCManager> {
         if (!this.isBotActive || !this.props.npcGizmo) return;
 
         console.log("Despawning bot.");
-        const agent = this.props.npcGizmo.as(AvatarAIAgent);
-        agent.despawnAgentPlayer();
+        // TODO: Implement proper bot despawning when AI agent module is available
+        // const agent = this.props.npcGizmo.as(AvatarAIAgent);
+        // agent.despawnAgentPlayer();
         this.isBotActive = false;
         this.npcPlayer = null;
     }

@@ -27,11 +27,12 @@ export class HUDManager extends hz.Component {
   }
 
   preStart() {
-    this.connectLocalBroadcastEvent(
-      Events.onRegisterRaceHUD,
-      (data) => {
-        this.HUDPool.addToPool(data.caller);
-      });
+    // DEPRECATED: Racing game HUD registration - not used in archer game
+    // this.connectLocalBroadcastEvent(
+    //   Events.onRegisterRaceHUD,
+    //   (data) => {
+    //     this.HUDPool.addToPool(data.caller);
+    //   });
 
     this.connectCodeBlockEvent(
       this.entity,

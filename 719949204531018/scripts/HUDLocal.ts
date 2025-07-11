@@ -1,10 +1,14 @@
 /**
- *  Local Player UI script that tells the player which race position they are and the race timings
+ *  DEPRECATED: Local Player UI script for racing game - replaced by HUDLocal_Archer for archer game
+ *  This file is kept for reference but should not be used in archer game
  */
 import * as hz from "horizon/core";
-import { Events } from "Events";
-import { msToMinutesAndSeconds } from "GameUtils";
+// import { Events } from "Events";
+// import { msToMinutesAndSeconds } from "GameUtils";
 
+// DEPRECATED: This class is disabled for archer game
+// Use HUDLocal_Archer instead
+/*
 class HUDLocal extends hz.Component<typeof HUDLocal> {
   static propsDefinition = {
     superIcon: { type: hz.PropTypes.Entity },
@@ -192,5 +196,6 @@ class HUDLocal extends hz.Component<typeof HUDLocal> {
     this.entity.position.set(hz.Vec3.zero);
   }
 }
+*/
 
-hz.Component.register(HUDLocal);
+// hz.Component.register(HUDLocal);

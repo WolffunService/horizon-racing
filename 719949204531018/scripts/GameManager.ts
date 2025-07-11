@@ -117,6 +117,4 @@ export class GameManager extends hz.Component<typeof GameManager> {
   }
 }
 
-}
-
 hz.Component.register(GameManager);

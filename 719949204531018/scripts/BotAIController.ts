@@ -2,7 +2,7 @@
  * AI Controller for bot behavior in PvP Archer matches
  */
 import * as hz from 'horizon/core';
-import { Events, FireArrowPayload } from './Events';
+import { Events, FireArrowPayload, TurnChangedPayload } from './Events';
 import { NPCManager } from './NPCManager';
 
 export class BotAIController extends hz.Component<typeof BotAIController> {
@@ -18,7 +18,7 @@ export class BotAIController extends hz.Component<typeof BotAIController> {
     private humanOpponent: hz.Player | null = null;
 
     preStart() {
-        this.connectLocalBroadcastEvent(Events.onTurnChanged, (payload) => {
+        this.connectNetworkBroadcastEvent(Events.onTurnChanged, (payload: TurnChangedPayload) => {
             this.botPlayer = NPCManager.getInstance().getBotPlayer();
             if (this.botPlayer && payload.currentPlayer.id === this.botPlayer.id) {
                 // Tìm đối thủ là người

@@ -101,35 +101,37 @@ export class EnvironmentalSoundManager extends hz.Component<typeof Environmental
       }
     });
 
-    this.connectLocalBroadcastEvent(Events.onGameStartTimeLeft, (data) => {
-      const timeLeftMS = data.timeLeftMS;
-      if (timeLeftMS <= 3500 && timeLeftMS > 2500) {
-        this.countdown3VO?.play(this.VOAudioOptions);
-      }
-      else if (timeLeftMS <= 2500 && timeLeftMS > 1500) {
-        this.countdown2VO?.play(this.VOAudioOptions);
-      }
-      else if (timeLeftMS <= 1500) {
-        this.countdown1VO?.play(this.VOAudioOptions);
-      }
-    });
+    // TODO: Implement turn-based countdown for archer game
+    // this.connectLocalBroadcastEvent(Events.onGameStartTimeLeft, (data) => {
+    //   const timeLeftMS = data.timeLeftMS;
+    //   if (timeLeftMS <= 3500 && timeLeftMS > 2500) {
+    //     this.countdown3VO?.play(this.VOAudioOptions);
+    //   }
+    //   else if (timeLeftMS <= 2500 && timeLeftMS > 1500) {
+    //     this.countdown2VO?.play(this.VOAudioOptions);
+    //   }
+    //   else if (timeLeftMS <= 1500) {
+    //     this.countdown1VO?.play(this.VOAudioOptions);
+    //   }
+    // });
 
-    this.connectLocalBroadcastEvent(Events.onGameEndTimeLeft, (data) => {
-      const timeLeftMS = data.timeLeftMS;
-      if (timeLeftMS <= 10500 && timeLeftMS > 9500) {
-        this.countdown10VO?.play(this.VOAudioOptions);
-      }
-      else
-        if (timeLeftMS <= 3500 && timeLeftMS > 2500) {
-          this.countdown3VO?.play(this.VOAudioOptions);
-        }
-        else if (timeLeftMS <= 2500 && timeLeftMS > 1500) {
-          this.countdown2VO?.play(this.VOAudioOptions);
-        }
-        else if (timeLeftMS <= 1500) {
-          this.countdown1VO?.play(this.VOAudioOptions);
-        }
-    });
+    // TODO: Implement turn-based countdown for archer game
+    // this.connectLocalBroadcastEvent(Events.onGameEndTimeLeft, (data) => {
+    //   const timeLeftMS = data.timeLeftMS;
+    //   if (timeLeftMS <= 10500 && timeLeftMS > 9500) {
+    //     this.countdown10VO?.play(this.VOAudioOptions);
+    //   }
+    //   else
+    //     if (timeLeftMS <= 3500 && timeLeftMS > 2500) {
+    //       this.countdown3VO?.play(this.VOAudioOptions);
+    //     }
+    //     else if (timeLeftMS <= 2500 && timeLeftMS > 1500) {
+    //       this.countdown2VO?.play(this.VOAudioOptions);
+    //     }
+    //     else if (timeLeftMS <= 1500) {
+    //       this.countdown1VO?.play(this.VOAudioOptions);
+    //     }
+    // });
   }
 
   start() {

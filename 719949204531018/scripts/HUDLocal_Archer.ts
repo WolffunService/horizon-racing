@@ -123,7 +123,8 @@ export class HUDLocal_Archer extends hz.Component<typeof HUDLocal_Archer> {
             color = new hz.Vec3(1, 0, 0);
         }
 
-        healthBar.material.set({ color: color });
+        healthBar.style.tintColor.set(new hz.Color(color.x, color.y, color.z, 1));
+        healthBar.style.tintStrength.set(1);
     }
 
     private updateTurnIndicator(text: string) {

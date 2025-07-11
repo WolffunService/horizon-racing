@@ -4,7 +4,16 @@
  */
 import { Events } from "Events";
 import * as hz from "horizon/core";
-import * as MathUtils from "MathUtils";
+// import * as MathUtils from "MathUtils"; // Removed in archer refactor
+
+// Math utility functions (replaced MathUtils)
+const Deg2Rad = Math.PI / 180;
+
+function getClockwiseAngle(from: hz.Vec3, to: hz.Vec3): number {
+    const dot = from.dot(to);
+    const cross = from.cross(to);
+    return Math.atan2(cross.y, dot);
+}
 
 export class PlayerControllerLocal extends hz.Component<
   typeof PlayerControllerLocal
@@ -111,7 +120,7 @@ export class PlayerControllerLocal extends hz.Component<
       Events.onSetPlyrCtrlData,
       (data) => {
         this.boostJumpAmount = data.boostJumpAmount;
-        this.boostJumpRadians = data.boostJumpAngle * MathUtils.Deg2Rad;
+        this.boostJumpRadians = data.boostJumpAngle * Deg2Rad;
         this.doubleJumpAmount = data.doubleJumpAmount;
       }
     );
@@ -236,7 +245,7 @@ export class PlayerControllerLocal extends hz.Component<
     const facingXZ = new hz.Vec3(ownerfacing.x, 0, ownerfacing.z).normalizeInPlace();
 
     //based on the player's XZ facing, rotate the input to their facing, Yaxis being equal to their forward
-    const angleRads = MathUtils.getClockwiseAngle(hz.Vec3.forward, facingXZ);
+    const angleRads = getClockwiseAngle(hz.Vec3.forward, facingXZ);
     const quartForControl = hz.Quaternion.fromAxisAngle(hz.Vec3.up, angleRads).normalizeInPlace();
 
     const movementDir = new hz.Vec3(
