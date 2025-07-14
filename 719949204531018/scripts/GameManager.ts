@@ -37,6 +37,10 @@ export class GameManager extends hz.Component<typeof GameManager> {
     }
   }
 
+  start() {
+    // Required abstract method implementation
+  }
+
   preStart() {
     this.gameStateUI = this.props.gameStateUI?.as(hz.TextGizmo) ?? null;
     this.updateGameStateUI("Waiting for players...");

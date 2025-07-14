@@ -41,6 +41,10 @@ export class MatchManager extends hz.Component<typeof MatchManager> {
 
   subscriptions: Array<hz.EventSubscription> = [];
 
+  start() {
+    // Required abstract method implementation
+  }
+
   preStart() {
     this.connectCodeBlockEvent(this.entity, hz.CodeBlockEvents.OnPlayerEnterWorld, (p) => this.handleOnPlayerEnterWorld(p));
     this.connectCodeBlockEvent(this.entity, hz.CodeBlockEvents.OnPlayerExitWorld, (p) => this.handleOnPlayerExitWorld(p));

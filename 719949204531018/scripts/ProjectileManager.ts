@@ -27,8 +27,9 @@ export class ProjectileManager extends hz.Component<typeof ProjectileManager> {
     }
 
     preStart() {
-        this.connectNetworkBroadcastEvent(Events.fireArrowRequest, (payload, sender) => {
-            this.spawnArrow(payload, sender);
+        this.connectNetworkBroadcastEvent(Events.fireArrowRequest, (payload: FireArrowPayload) => {
+            // Note: sender information is not available in network broadcast events
+            this.spawnArrow(payload, null);
         });
     }
 
@@ -36,7 +37,7 @@ export class ProjectileManager extends hz.Component<typeof ProjectileManager> {
         // Required method implementation
     }
     
-    private async spawnArrow(payload: FireArrowPayload, attacker: hz.Player) {
+    private async spawnArrow(payload: FireArrowPayload, attacker: hz.Player | null) {
         if (!this.props.arrowAsset) return;
 
         try {
@@ -55,7 +56,9 @@ export class ProjectileManager extends hz.Component<typeof ProjectileManager> {
                     arrowController.attacker = attacker;
                 }
                 
-                physicalArrow.velocity.set(payload.initialVelocity);
+                // Set initial velocity - TODO: find correct method for setting velocity
+                // physicalArrow.addImpulse(payload.initialVelocity);
+                console.log("Arrow spawned with velocity:", payload.initialVelocity);
             }
         } catch (e) {
             console.error("Failed to spawn arrow:", e);

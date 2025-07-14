@@ -81,7 +81,7 @@ export class BotAIController extends hz.Component<typeof BotAIController> {
         console.log(`Bot is firing at ${this.humanOpponent.name.get()} with power ${powerRatio.toFixed(2)}`);
         // Bot không cần gửi NetworkEvent, nó có thể trực tiếp gọi logic spawn
         // nhưng để nhất quán, chúng ta vẫn gửi event để ProjectileManager xử lý
-        this.sendNetworkBroadcastEvent(Events.fireArrowRequest, payload, this.botPlayer);
+        this.sendNetworkBroadcastEvent(Events.fireArrowRequest, payload);
     }
 }
 

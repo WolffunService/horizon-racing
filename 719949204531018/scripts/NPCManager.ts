@@ -71,9 +71,12 @@ export class NPCManager extends hz.Component<typeof NPCManager> {
         if (this.isBotActive || !this.npcAgentGizmo) return;
         
         console.log("Spawning bot to play with: " + humanPlayer.name.get());
-        const result = await this.npcAgentGizmo.spawnAgentPlayer();
-
         // TODO: Implement proper bot spawning when AI agent module is available
+        // const result = await this.npcAgentGizmo.spawnAgentPlayer();
+
+        // Mock result for now - bot spawning is not implemented yet
+        const result: AgentSpawnResult = { success: false };
+
         if (result && result.success) {
             // Đợi một chút để agent sẵn sàng
             this.async.setTimeout(() => {
@@ -89,7 +92,7 @@ export class NPCManager extends hz.Component<typeof NPCManager> {
                 }
             }, 500);
         } else {
-            console.error("Failed to spawn bot. Reason: " + AgentSpawnResult[result]);
+            console.error("Failed to spawn bot. Bot spawning not implemented yet.");
         }
     }
 

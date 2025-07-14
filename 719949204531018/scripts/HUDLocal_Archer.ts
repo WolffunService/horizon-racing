@@ -123,7 +123,7 @@ export class HUDLocal_Archer extends hz.Component<typeof HUDLocal_Archer> {
             color = new hz.Vec3(1, 0, 0);
         }
 
-        healthBar.style.tintColor.set(new hz.Color(color.x, color.y, color.z, 1));
+        healthBar.style.tintColor.set(new hz.Color(color.x, color.y, color.z));
         healthBar.style.tintStrength.set(1);
     }
 

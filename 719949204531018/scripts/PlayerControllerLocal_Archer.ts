@@ -69,7 +69,7 @@ export class PlayerControllerLocal_Archer extends hz.Component<typeof PlayerCont
 
     private startDrawing() {
         this.isDrawing = true;
-        this.drawStartTime = this.world.getTime();
+        this.drawStartTime = Date.now();
         
         // Visual feedback for drawing
         this.world.ui.showPopupForPlayer(this.owner, "Drawing bow...", 0.5);
@@ -80,7 +80,7 @@ export class PlayerControllerLocal_Archer extends hz.Component<typeof PlayerCont
     }
 
     private fireArrow() {
-        const drawDuration = Math.min(this.world.getTime() - this.drawStartTime, this.props.maxDrawTime);
+        const drawDuration = Math.min((Date.now() - this.drawStartTime) / 1000, this.props.maxDrawTime);
         const powerRatio = drawDuration / this.props.maxDrawTime; // 0.0 to 1.0
 
         const bow = this.props.bowEntity;
@@ -126,7 +126,7 @@ export class PlayerControllerLocal_Archer extends hz.Component<typeof PlayerCont
     dispose() {
         this.cleanup();
         if (this.triggerInput) {
-            this.triggerInput.dispose();
+            // this.triggerInput.dispose(); // dispose method not available
             this.triggerInput = null;
         }
     }
